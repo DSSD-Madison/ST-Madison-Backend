@@ -1,9 +1,13 @@
 # Strong Towns Madison Backend
 
 ## Prerequisites
-- Install Rust https://rustup.rs/
-    - [Rust (book)](https://doc.rust-lang.org/book/)
+- Rust setup
+    - [Install Rust](https://rust-lang.org/tools/install/)
+    - [Setup Rust-Analyzer](https://rust-analyzer.github.io/)
+    - [Setup rustfmt](https://github.com/rust-lang/rustfmt)
+    - [Setup clippy](https://github.com/rust-lang/rust-clippy)
 - Install Docker
+- [Rust (book)](https://doc.rust-lang.org/book/)
 
 ## Getting Started
 
@@ -52,3 +56,10 @@ cargo test
 - [Tower Middleware](https://docs.rs/tower-http/latest/tower_http/)
 - [env_logger](https://docs.rs/env_logger/latest/env_logger/)
 - [iter_tools](https://docs.rs/itertools/latest/itertools/)
+- [chrono](https://docs.rs/chrono/latest/chrono/)
+- [dotenvy](https://docs.rs/dotenvy/0.15.7/dotenvy/)
+- [sqlx](https://docs.rs/sqlx/latest/sqlx/)
+- [validator](https://docs.rs/validator/latest/validator/)
+- [bcrypt](https://docs.rs/bcrypt/latest/bcrypt/)
+- [jsonwebtoken](https://docs.rs/jsonwebtoken/latest/jsonwebtoken/)
+- [uuid](https://docs.rs/uuid/latest/uuid/)

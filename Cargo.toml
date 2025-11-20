@@ -3,6 +3,11 @@ name = "st-madison-backend"
 version = "0.1.0"
 edition = "2024"
 
+[lints.clippy]
+unwrap_used = "deny"
+todo = "deny"
+unimplemented = "deny"
+
 [dependencies]
 axum = "0.8.6"
 bcrypt = "0.17.1"

@@ -2490,6 +2490,7 @@ dependencies = [
  "env_logger",
  "iter_tools",
  "jsonwebtoken",
+ "rust_decimal",
  "serde",
  "serde_json",
  "thiserror",

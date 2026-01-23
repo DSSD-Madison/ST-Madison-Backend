@@ -1,11 +1,7 @@
 use std::env;
 
 use axum::{Router, routing::get};
-
-use crate::{handlers::health::health_check, state::AppState};
-
-mod handlers;
-mod state;
+use st_madison_backend::{handlers::health::health_check, state::AppState};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

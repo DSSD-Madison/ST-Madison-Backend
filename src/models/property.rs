@@ -14,5 +14,5 @@ pub struct Property {
     pub half_baths: Option<f64>,
     pub total_living_area: Option<f64>,
     pub lot_size: Option<f64>,
-    pub current_value_2025: Decimal,
+    pub current_value_2025: f64,
 }

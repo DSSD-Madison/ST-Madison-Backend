@@ -1,7 +1,10 @@
 use std::env;
 
 use axum::{Router, routing::get};
-use st_madison_backend::{handlers::health::health_check, state::AppState};
+use st_madison_backend::{
+    handlers::{health::health_check, property::get_property_by_address},
+    state::AppState,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -15,6 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = Router::new()
         .route("/health", get(health_check))
+        .route("/property/{address}", get(get_property_by_address))
         .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;

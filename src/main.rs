@@ -13,9 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env");
 
-    let app_state = AppState::new(&database_url)
-        .await
-        .expect("Failed to connect to database");
+    let app_state = AppState::new(&database_url).unwrap();
 
     println!("connected to database");
 

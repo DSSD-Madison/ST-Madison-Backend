@@ -1,2 +1,11 @@
+# Rust compilation output
 /target
+
+# DuckDB
+*.duckdb
+*.duckdb.wal
+*.duckdb-shm
+
+# Environment and secrets
 .env
+.env.local

@@ -3,6 +3,14 @@ name = "st-madison-backend"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "st_madison_backend"
+path = "src/lib.rs"
+
+[[bin]]
+name = "main"
+path = "src/bin/main.rs"
+
 [lints.clippy]
 unwrap_used = "deny"
 todo = "deny"

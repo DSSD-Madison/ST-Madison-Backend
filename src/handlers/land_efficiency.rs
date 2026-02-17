@@ -1,8 +1,7 @@
 use axum::{Json, extract::State};
 
 use crate::{
-    models::LandEfficiencyMetrics,
-    repositories::land_efficiency::DuckDbLandEfficiencyRepository,
+    models::LandEfficiencyMetrics, repositories::land_efficiency::DuckDbLandEfficiencyRepository,
     state::AppState,
 };
 

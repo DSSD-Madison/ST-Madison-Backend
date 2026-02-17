@@ -1,6 +1,9 @@
 use axum::{Router, routing::get};
 use st_madison_backend::{
-    handlers::{health::health_check, property::get_property_by_address, land_efficiency::get_land_efficiency_metrics},
+    handlers::{
+        health::health_check, land_efficiency::get_land_efficiency_metrics,
+        property::get_property_by_address,
+    },
     state::AppState,
 };
 

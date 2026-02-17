@@ -4,11 +4,8 @@ use duckdb::Connection;
 
 use crate::models::ParcelAssessmentModel;
 
-// use super::ParcelAssessmentRepository;
-// use super::ParcelAssessmentRepositoryError;
 mod error;
 pub use error::ParcelAssessmentRepositoryError;
-
 
 pub struct DuckDbParcelAssessmentRepository {
     db: Arc<Mutex<Connection>>,

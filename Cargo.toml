@@ -21,7 +21,7 @@ axum = "0.8.6"
 bcrypt = "0.17.1"
 chrono = { version = "0.4.42", features = ["serde"] } 
 dotenvy = "0.15.7"
-duckdb = { version = "1.4.3", features = ["bundled"] }
+duckdb = { version = "1.4.3" }
 env_logger = "0.11.8"
 iter_tools = "0.40.0"
 jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }

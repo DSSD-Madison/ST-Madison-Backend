@@ -30,21 +30,21 @@
 5. Start the dev server
 
 ```bash
-cargo run
+DUCKDB_DOWNLOAD_LIB=1 cargo run
 ```
 
 6. Run tests
 
 ```bash
-cargo test
+DUCKDB_DOWNLOAD_LIB=1 cargo test
 ```
 
 ## Code Quality
 
 ```bash
-cargo fmt
-cargo clippy
-cargo test
+DUCKDB_DOWNLOAD_LIB=1 cargo fmt
+DUCKDB_DOWNLOAD_LIB=1 cargo clippy
+DUCKDB_DOWNLOAD_LIB=1 cargo test
 ```
 
 ## Tech Stack

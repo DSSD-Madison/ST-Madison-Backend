@@ -27,6 +27,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install tippecanoe
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli tippecanoe unzip
+
       - name: Install DuckDB CLI
         run: |
           mkdir -p "$HOME/.local/bin"
@@ -36,11 +41,6 @@ jobs:
           unzip -o duckdb.zip -d "$HOME/.local/bin"
           chmod +x "$HOME/.local/bin/duckdb"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Install tippecanoe
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli tippecanoe unzip
 
       - name: Generate parcel PMTiles
         env:

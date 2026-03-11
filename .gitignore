@@ -8,6 +8,9 @@
 *.db
 *.db.wal
 
+# Generated map tiles
+build/tiles/
+
 # Environment and secrets
 .env
 .env.local

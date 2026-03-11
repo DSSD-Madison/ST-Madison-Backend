@@ -1,0 +1,81 @@
+name: Parcel Tiles
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 0'
+
+concurrency:
+  group: parcel-tiles
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DUCKDB_VERSION: 1.4.3
+  OUTPUT_DIR: build/tiles
+  PMTILES_NAME: madison-parcels.pmtiles
+  MIN_ZOOM: '10'
+  MAX_ZOOM: '14'
+
+jobs:
+  build:
+    name: Build PMTiles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install DuckDB CLI
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -L --fail --show-error \
+            -o duckdb.zip \
+            "https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/duckdb_cli-linux-amd64.zip"
+          unzip -o duckdb.zip -d "$HOME/.local/bin"
+          chmod +x "$HOME/.local/bin/duckdb"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install tippecanoe
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli tippecanoe unzip
+
+      - name: Generate parcel PMTiles
+        env:
+          GCS_KEY_ID: ${{ secrets.GCS_KEY_ID }}
+          GCS_SECRET: ${{ secrets.GCS_SECRET }}
+          OUTPUT_DIR: ${{ env.OUTPUT_DIR }}
+          PMTILES_NAME: ${{ env.PMTILES_NAME }}
+          MIN_ZOOM: ${{ env.MIN_ZOOM }}
+          MAX_ZOOM: ${{ env.MAX_ZOOM }}
+        run: bash ./scripts/generate_parcel_pmtiles.sh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: madison-parcels-pmtiles
+          path: build/tiles/madison-parcels.pmtiles
+          if-no-files-found: error
+
+      - name: Upload to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          OUTPUT_DIR: ${{ env.OUTPUT_DIR }}
+          PMTILES_NAME: ${{ env.PMTILES_NAME }}
+          R2_BUCKET: ${{ vars.CLOUDFLARE_R2_BUCKET }}
+          R2_ENDPOINT: ${{ vars.CLOUDFLARE_R2_ENDPOINT }}
+          R2_OBJECT_KEY: ${{ vars.CLOUDFLARE_R2_OBJECT_KEY }}
+        run: |
+          : "${R2_BUCKET:?Set repository variable CLOUDFLARE_R2_BUCKET}"
+          : "${R2_ENDPOINT:?Set repository variable CLOUDFLARE_R2_ENDPOINT}"
+
+          object_key="${R2_OBJECT_KEY:-$PMTILES_NAME}"
+
+          aws s3 cp "${OUTPUT_DIR}/${PMTILES_NAME}" "s3://${R2_BUCKET}/${object_key}" \
+            --endpoint-url "${R2_ENDPOINT}" \
+            --content-type "application/vnd.pmtiles" \
+            --cache-control "public,max-age=3600,s-maxage=86400"

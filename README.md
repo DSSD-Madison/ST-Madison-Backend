@@ -47,6 +47,60 @@ DUCKDB_DOWNLOAD_LIB=1 cargo clippy
 DUCKDB_DOWNLOAD_LIB=1 cargo test
 ```
 
+## Parcel Tiles
+
+This repo includes a static parcel tile pipeline for the full `silver.parcels` dataset
+(82,152 parcels). It extracts parcel geometries from DuckDB/GCS, writes newline-delimited
+GeoJSON, and builds a single PMTiles archive for MapLibre.
+
+### Local Build
+
+Prerequisites:
+- `duckdb` CLI
+- `tippecanoe`
+- `GCS_KEY_ID` and `GCS_SECRET` in your environment or `.env`
+
+Run:
+
+```bash
+set -a
+source .env
+set +a
+./scripts/generate_parcel_pmtiles.sh
+```
+
+Output:
+- `build/tiles/parcels.geojson.ndjson`
+- `build/tiles/madison-parcels.pmtiles`
+
+Defaults:
+- minimum zoom: `10` (citywide Madison view)
+- maximum zoom: `14`
+
+Override those if needed:
+
+```bash
+MIN_ZOOM=9 MAX_ZOOM=15 ./scripts/generate_parcel_pmtiles.sh
+```
+
+### GitHub Action
+
+The scheduled workflow is in `.github/workflows/parcel-tiles.yml`. It runs weekly and can
+also be triggered manually.
+
+Required GitHub secrets:
+- `GCS_KEY_ID`
+- `GCS_SECRET`
+- `CLOUDFLARE_R2_ACCESS_KEY_ID`
+- `CLOUDFLARE_R2_SECRET_ACCESS_KEY`
+
+Required GitHub repository variables:
+- `CLOUDFLARE_R2_BUCKET`
+- `CLOUDFLARE_R2_ENDPOINT`
+
+Optional GitHub repository variable:
+- `CLOUDFLARE_R2_OBJECT_KEY` (defaults to `madison-parcels.pmtiles`)
+
 ## Tech Stack
 
 - [Axum](https://docs.rs/axum/latest/axum/)

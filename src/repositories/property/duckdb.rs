@@ -6,6 +6,7 @@ use rust_decimal::Decimal;
 use crate::models::Property;
 use crate::models::PropertyWithHistory;
 use crate::models::TaxRecord;
+use crate::models::parcel_tax_breakdown::ParcelTaxBreakdown;
 
 use super::PropertyRepository;
 use super::PropertyRepositoryError;
@@ -33,6 +34,45 @@ impl PropertyRepository for DuckDbPropertyRepository {
             property,
             tax_records,
         })
+    }
+
+    fn get_property_tax_breakdown(
+        &self,
+        address: &str,
+    ) -> Result<Vec<ParcelTaxBreakdown>, PropertyRepositoryError> {
+        let conn = self
+            .db
+            .lock()
+            .map_err(|e| PropertyRepositoryError::Database(e.to_string()))?;
+    
+        let mut stmt = conn
+            .prepare(
+                r#"SELECT s.parcel_address, t.tax_year, t.county_tax,
+                          t.school_tax, t.city_tax, t.matc_tax
+                   FROM gold.sites s
+                   JOIN silver.tax_roll t
+                     ON s.site_parcel_id = t.parcel_id
+                   WHERE s.parcel_address = ?
+                   ORDER BY t.tax_year DESC"#,
+            )
+            .map_err(|e| PropertyRepositoryError::Database(e.to_string()))?;
+    
+        let records = stmt
+            .query_map([address], |row| {
+                Ok(ParcelTaxBreakdown {
+                    parcel_address: row.get(0)?,
+                    tax_year: row.get(1)?,
+                    county_tax: row.get(2)?,
+                    school_tax: row.get(3)?,
+                    city_tax: row.get(4)?,
+                    matc_tax: row.get(5)?,
+                })
+            })
+            .map_err(|e| PropertyRepositoryError::Database(e.to_string()))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| PropertyRepositoryError::RowMapping(e.to_string()))?;
+    
+        Ok(records)
     }
 
     fn get_tax_records(

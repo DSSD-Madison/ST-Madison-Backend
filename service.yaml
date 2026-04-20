@@ -1,0 +1,37 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: st-madison-backend
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "3"
+        run.googleapis.com/cpu-throttling: "true"
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 30
+      containers:
+        - image: ghcr.io/YOUR_ORG/st-madison-backend:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          env:
+            - name: PORT
+              value: "8080"
+            - name: GCS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: gcs-credentials
+                  key: key_id
+            - name: GCS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: gcs-credentials
+                  key: secret

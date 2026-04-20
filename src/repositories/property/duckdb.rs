@@ -116,6 +116,7 @@ impl PropertyRepository for DuckDbPropertyRepository {
 /// "10 W Copper Circle"   → "10 West Copper Circle"
 fn toggle_direction_abbreviations(query: &str) -> String {
     const EXPANSIONS: &[(&str, &str)] = &[
+        // Directions
         ("North", "N"),
         ("South", "S"),
         ("East", "E"),
@@ -124,6 +125,21 @@ fn toggle_direction_abbreviations(query: &str) -> String {
         ("Northwest", "NW"),
         ("Southeast", "SE"),
         ("Southwest", "SW"),
+        // Street types
+        ("Avenue", "Ave"),
+        ("Boulevard", "Blvd"),
+        ("Circle", "Cir"),
+        ("Court", "Ct"),
+        ("Drive", "Dr"),
+        ("Lane", "Ln"),
+        ("Place", "Pl"),
+        ("Road", "Rd"),
+        ("Street", "St"),
+        ("Terrace", "Ter"),
+        ("Trail", "Trl"),
+        ("Parkway", "Pkwy"),
+        ("Highway", "Hwy"),
+        ("Square", "Sq"),
     ];
 
     let words: Vec<&str> = query.split_whitespace().collect();

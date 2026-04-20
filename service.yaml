@@ -8,6 +8,10 @@ spec:
   template:
     metadata:
       annotations:
+        # NOTE: minScale "0" means the service scales to zero when idle.
+        # Cold starts take 3-8s (DuckDB + GCS init), which breaks search-as-you-type
+        # for the first user after an idle period. Set to "1" to keep an instance
+        # always warm if this becomes a problem. Cost is minimal with cpu-throttling enabled.
         autoscaling.knative.dev/minScale: "0"
         autoscaling.knative.dev/maxScale: "3"
         run.googleapis.com/cpu-throttling: "true"

@@ -11,11 +11,9 @@ COPY . .
 RUN wget https://github.com/duckdb/duckdb/releases/download/v1.4.3/libduckdb-linux-amd64.zip && \
     unzip libduckdb-linux-amd64.zip -d libduckdb
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/app/target \
-    DUCKDB_LIB_DIR=/app/libduckdb \
-    DUCKDB_INCLUDE_DIR=$DUCKDB_LIB_DIR \
-    LD_LIBRARY_PATH=$DUCKDB_LIB_DIR \
+RUN DUCKDB_LIB_DIR=/app/libduckdb \
+    DUCKDB_INCLUDE_DIR=/app/libduckdb \
+    LD_LIBRARY_PATH=/app/libduckdb \
     cargo build --release && \
     cp /app/target/release/main /app/server
 

@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::PropertyWithHistory;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ParcelResponse {
     pub assessments: AssessmentsData,
     pub land_efficiency: LandEfficiencyData,

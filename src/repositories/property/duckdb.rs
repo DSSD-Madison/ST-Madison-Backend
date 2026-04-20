@@ -25,7 +25,10 @@ impl PropertyRepository for DuckDbPropertyRepository {
         &self,
         query: impl AsRef<str>,
     ) -> Result<Vec<String>, PropertyRepositoryError> {
-        let pattern = format!("%{}%", query.as_ref());
+        let q = query.as_ref();
+        let original = format!("%{q}%");
+        let alternate = format!("%{}%", toggle_direction_abbreviations(q));
+
         let conn = self
             .db
             .lock()
@@ -33,16 +36,16 @@ impl PropertyRepository for DuckDbPropertyRepository {
 
         let mut stmt = conn
             .prepare(
-                r#"SELECT parcel_address
+                r#"SELECT DISTINCT parcel_address
                    FROM gold.sites
-                   WHERE parcel_address ILIKE ?
+                   WHERE parcel_address ILIKE ? OR parcel_address ILIKE ?
                    ORDER BY parcel_address
                    LIMIT 10"#,
             )
             .map_err(|e| PropertyRepositoryError::Database(e.to_string()))?;
 
         let addresses = stmt
-            .query_map([pattern], |row| row.get(0))
+            .query_map([original, alternate], |row| row.get(0))
             .map_err(|e| PropertyRepositoryError::Database(e.to_string()))?
             .collect::<Result<Vec<String>, _>>()
             .map_err(|e| PropertyRepositoryError::RowMapping(e.to_string()))?;
@@ -106,6 +109,41 @@ impl PropertyRepository for DuckDbPropertyRepository {
 
         Ok(records)
     }
+}
+
+/// Swaps direction words ↔ abbreviations so both DB formats match.
+/// "10 West Copper Circle" → "10 W Copper Circle"
+/// "10 W Copper Circle"   → "10 West Copper Circle"
+fn toggle_direction_abbreviations(query: &str) -> String {
+    const EXPANSIONS: &[(&str, &str)] = &[
+        ("North", "N"),
+        ("South", "S"),
+        ("East", "E"),
+        ("West", "W"),
+        ("Northeast", "NE"),
+        ("Northwest", "NW"),
+        ("Southeast", "SE"),
+        ("Southwest", "SW"),
+    ];
+
+    let words: Vec<&str> = query.split_whitespace().collect();
+    let toggled: Vec<String> = words
+        .iter()
+        .map(|word| {
+            // Try full → abbrev
+            for (full, abbrev) in EXPANSIONS {
+                if word.eq_ignore_ascii_case(full) {
+                    return abbrev.to_string();
+                }
+                if word.eq_ignore_ascii_case(abbrev) {
+                    return full.to_string();
+                }
+            }
+            word.to_string()
+        })
+        .collect();
+
+    toggled.join(" ")
 }
 
 impl DuckDbPropertyRepository {

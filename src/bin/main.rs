@@ -1,6 +1,6 @@
 use axum::{Router, routing::get};
 use st_madison_backend::{
-    handlers::{health::health_check, parcel::get_parcel_by_address, property::get_property_by_address},
+    handlers::{health::health_check, parcel::get_parcel_by_address, property::get_property_by_address, search::search_addresses},
     state::AppState,
 };
 use tower_http::cors::{Any, CorsLayer};
@@ -22,6 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/health", get(health_check))
         .route("/property/{address}", get(get_property_by_address))
         .route("/parcel/{address}", get(get_parcel_by_address))
+        .route("/search", get(search_addresses))
         .layer(cors)
         .with_state(app_state);
 

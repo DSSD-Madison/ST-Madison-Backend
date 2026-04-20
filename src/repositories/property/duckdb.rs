@@ -21,6 +21,35 @@ impl DuckDbPropertyRepository {
 }
 
 impl PropertyRepository for DuckDbPropertyRepository {
+    fn search_addresses(
+        &self,
+        query: impl AsRef<str>,
+    ) -> Result<Vec<String>, PropertyRepositoryError> {
+        let pattern = format!("%{}%", query.as_ref());
+        let conn = self
+            .db
+            .lock()
+            .map_err(|e| PropertyRepositoryError::Database(e.to_string()))?;
+
+        let mut stmt = conn
+            .prepare(
+                r#"SELECT parcel_address
+                   FROM gold.sites
+                   WHERE parcel_address ILIKE ?
+                   ORDER BY parcel_address
+                   LIMIT 10"#,
+            )
+            .map_err(|e| PropertyRepositoryError::Database(e.to_string()))?;
+
+        let addresses = stmt
+            .query_map([pattern], |row| row.get(0))
+            .map_err(|e| PropertyRepositoryError::Database(e.to_string()))?
+            .collect::<Result<Vec<String>, _>>()
+            .map_err(|e| PropertyRepositoryError::RowMapping(e.to_string()))?;
+
+        Ok(addresses)
+    }
+
     fn get_property_with_history(
         &self,
         address: impl AsRef<str>,

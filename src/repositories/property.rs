@@ -14,4 +14,9 @@ pub trait PropertyRepository {
         &self,
         parcel_id: impl AsRef<str>,
     ) -> Result<Vec<TaxRecord>, PropertyRepositoryError>;
+
+    fn search_addresses(
+        &self,
+        query: impl AsRef<str>,
+    ) -> Result<Vec<String>, PropertyRepositoryError>;
 }

@@ -9,7 +9,7 @@
 *.db.wal
 
 # Generated map tiles
-build/tiles/
+build/
 
 # Environment and secrets
 .env

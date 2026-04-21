@@ -1,4 +1,4 @@
-name: Parcel Tiles
+name: Parcel Data
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     - cron: '17 4 * * 0'
 
 concurrency:
-  group: parcel-tiles
+  group: parcel-data
   cancel-in-progress: false
 
 permissions:
@@ -14,15 +14,16 @@ permissions:
 
 env:
   DUCKDB_VERSION: 1.4.3
-  OUTPUT_DIR: build/tiles
-  PMTILES_NAME: madison-parcels.pmtiles
-  MIN_ZOOM: '10'
-  MAX_ZOOM: '14'
 
 jobs:
-  build:
+  build-tiles:
     name: Build PMTiles
     runs-on: ubuntu-latest
+    env:
+      OUTPUT_DIR: build/tiles
+      PMTILES_NAME: madison-parcels.pmtiles
+      MIN_ZOOM: '10'
+      MAX_ZOOM: '14'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,10 +44,6 @@ jobs:
         env:
           GCS_KEY_ID: ${{ secrets.GCS_KEY_ID }}
           GCS_SECRET: ${{ secrets.GCS_SECRET }}
-          OUTPUT_DIR: ${{ env.OUTPUT_DIR }}
-          PMTILES_NAME: ${{ env.PMTILES_NAME }}
-          MIN_ZOOM: ${{ env.MIN_ZOOM }}
-          MAX_ZOOM: ${{ env.MAX_ZOOM }}
         run: bash ./scripts/generate_parcel_pmtiles.sh
 
       - name: Upload build artifact
@@ -61,8 +58,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
-          OUTPUT_DIR: ${{ env.OUTPUT_DIR }}
-          PMTILES_NAME: ${{ env.PMTILES_NAME }}
           R2_BUCKET: ${{ vars.CLOUDFLARE_R2_BUCKET }}
           R2_ENDPOINT: ${{ vars.CLOUDFLARE_R2_ENDPOINT }}
           R2_OBJECT_KEY: ${{ vars.CLOUDFLARE_R2_OBJECT_KEY }}
@@ -75,4 +70,56 @@ jobs:
           aws s3 cp "${OUTPUT_DIR}/${PMTILES_NAME}" "s3://${R2_BUCKET}/${object_key}" \
             --endpoint-url "${R2_ENDPOINT}" \
             --content-type "application/vnd.pmtiles" \
+            --cache-control "public,max-age=3600,s-maxage=86400"
+
+  build-stats:
+    name: Build Parcel Stats JSON
+    runs-on: ubuntu-latest
+    needs: build-tiles
+    env:
+      OUTPUT_DIR: build/stats
+      STATS_NAME: parcels.stats.json
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install AWS CLI
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@v1
+
+      - name: Install duckdb CLI
+        uses: opt-nc/setup-duckdb-action@v1.2.3
+
+      - name: Generate parcel stats JSON
+        env:
+          GCS_KEY_ID: ${{ secrets.GCS_KEY_ID }}
+          GCS_SECRET: ${{ secrets.GCS_SECRET }}
+          OUTPUT_DIR: ${{ env.OUTPUT_DIR }}
+          STATS_NAME: ${{ env.STATS_NAME }}
+        run: bash ./scripts/generate_parcel_stats.sh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: madison-parcels-stats
+          path: build/stats/parcels.stats.json
+          if-no-files-found: error
+
+      - name: Upload to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_BUCKET: ${{ vars.CLOUDFLARE_R2_BUCKET }}
+          R2_ENDPOINT: ${{ vars.CLOUDFLARE_R2_ENDPOINT }}
+          R2_STATS_OBJECT_KEY: ${{ vars.CLOUDFLARE_R2_STATS_OBJECT_KEY }}
+        run: |
+          : "${R2_BUCKET:?Set repository variable CLOUDFLARE_R2_BUCKET}"
+          : "${R2_ENDPOINT:?Set repository variable CLOUDFLARE_R2_ENDPOINT}"
+
+          object_key="${R2_STATS_OBJECT_KEY:-st-madison/$STATS_NAME}"
+
+          aws s3 cp "${OUTPUT_DIR}/${STATS_NAME}" "s3://${R2_BUCKET}/${object_key}" \
+            --endpoint-url "${R2_ENDPOINT}" \
+            --content-type "application/json" \
             --cache-control "public,max-age=3600,s-maxage=86400"

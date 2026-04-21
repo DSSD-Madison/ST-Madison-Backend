@@ -5,3 +5,4 @@ pub mod tax_record;
 pub use property::Property;
 pub use property_with_history::PropertyWithHistory;
 pub use tax_record::TaxRecord;
+pub mod parcel_tax_breakdown;

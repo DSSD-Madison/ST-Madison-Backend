@@ -2,6 +2,7 @@ pub mod duckdb;
 pub mod error;
 
 use crate::models::{Property, PropertyWithHistory, TaxRecord};
+use crate::models::parcel_tax_breakdown::ParcelTaxBreakdown;
 use error::PropertyRepositoryError;
 
 pub trait PropertyRepository {
@@ -14,4 +15,9 @@ pub trait PropertyRepository {
         &self,
         parcel_id: impl AsRef<str>,
     ) -> Result<Vec<TaxRecord>, PropertyRepositoryError>;
+
+    fn get_property_tax_breakdown(
+        &self,
+        address: &str,
+    ) -> Result<Vec<ParcelTaxBreakdown>, PropertyRepositoryError>;
 }
